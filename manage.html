@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>菜品管理 - 美味点单</title>
+<style>
+:root {
+  --primary: #FFC300;
+  --primary-dark: #F5B800;
+  --orange: #FF6B35;
+  --bg: #f5f5f5;
+  --card: #fff;
+  --text: #333;
+  --text-light: #999;
+  --border: #e8e8e8;
+  --radius: 12px;
+  --shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: #f0f0f0;
+  min-height: 100vh;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ── Header ── */
+.toolbar {
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+.toolbar h1 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+}
+.toolbar .nav-link {
+  color: var(--orange);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 6px 14px;
+  border-radius: 16px;
+  border: 1.5px solid var(--orange);
+  transition: all 0.2s;
+}
+.toolbar .nav-link:hover { background: #fff5f0; }
+
+/* ── Layout ── */
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* ── Add Form ── */
+.form-card {
+  background: #fff;
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: var(--shadow);
+  margin-bottom: 20px;
+}
+.form-card h2 {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  color: var(--text);
+}
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+@media (max-width: 500px) {
+  .form-row { grid-template-columns: 1fr; }
+}
+.form-group { margin-bottom: 14px; }
+.form-group.full { grid-column: 1 / -1; }
+.form-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.form-group input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid #ddd;
+  border-radius: 10px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+  font-family: inherit;
+}
+.form-group input:focus { border-color: var(--primary); }
+.form-group .img-preview {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-top: 8px;
+  background: #f0f0f0;
+  display: none;
+}
+.submit-btn {
+  width: 100%;
+  padding: 12px;
+  background: var(--primary);
+  border: none;
+  border-radius: 22px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-top: 4px;
+}
+.submit-btn:hover { background: var(--primary-dark); }
+.submit-btn:active { transform: scale(0.98); }
+
+/* ── Dish List ── */
+.list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.list-header h2 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+}
+.list-header .count {
+  font-size: 13px;
+  color: var(--text-light);
+}
+
+.dish-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 12px;
+}
+.dish-item {
+  background: #fff;
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  transition: transform 0.15s;
+}
+.dish-item:hover { transform: translateY(-2px); }
+.dish-item .thumb {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  background: #f0f0f0;
+}
+.dish-item .meta {
+  padding: 12px 14px 14px;
+}
+.dish-item .meta .dname {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dish-item .meta .dprice {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--orange);
+  margin-top: 4px;
+}
+.dish-item .meta .dprice::before { content: '\00a5'; font-size: 12px; }
+.dish-item .delete-btn {
+  display: block;
+  width: 100%;
+  padding: 8px;
+  border: none;
+  border-top: 1px solid var(--border);
+  background: #fff;
+  color: #e74c3c;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.dish-item .delete-btn:hover { background: #fef5f5; }
+
+.empty-state {
+  text-align: center;
+  padding: 48px 20px;
+  color: #ccc;
+  font-size: 14px;
+}
+.empty-state .icon { font-size: 48px; margin-bottom: 12px; display: block; }
+
+/* ── Toast ── */
+.toast {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.8);
+  background: rgba(0,0,0,0.8);
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 24px;
+  font-size: 14px;
+  font-weight: 600;
+  z-index: 999;
+  pointer-events: none;
+  opacity: 0;
+  transition: all 0.25s;
+  white-space: nowrap;
+}
+.toast.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <h1>菜品管理</h1>
+  <a class="nav-link" href="index.html">查看点单页</a>
+</div>
+
+<div class="container">
+  <!-- Add Form -->
+  <div class="form-card">
+    <h2>添加新菜品</h2>
+    <div class="form-row">
+      <div class="form-group">
+        <label>菜品名称</label>
+        <input type="text" id="dishName" placeholder="如：麻辣小龙虾" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label>价格 (元)</label>
+        <input type="number" id="dishPrice" placeholder="如：19.9" step="0.01" min="0.01">
+      </div>
+      <div class="form-group full">
+        <label>图片链接</label>
+        <input type="text" id="dishImage" placeholder="https://... 图片URL" oninput="previewImage()" autocomplete="off">
+        <img class="img-preview" id="imgPreview" alt="图片预览">
+      </div>
+    </div>
+    <button class="submit-btn" onclick="addDish()">确认添加</button>
+  </div>
+
+  <!-- Dish List -->
+  <div class="list-header">
+    <h2>所有菜品</h2>
+    <span class="count" id="dishCount">0 款</span>
+  </div>
+  <div class="dish-list" id="dishList"></div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════ DATA ═══════════════════
+const DEFAULT_DISHES = [
+  { id: 'd1',  name: '招牌红烧牛肉面', image: 'https://picsum.photos/seed/beef/300/225', price: 28.0 },
+  { id: 'd2',  name: '麻辣小龙虾',     image: 'https://picsum.photos/seed/lobster/300/225', price: 68.0 },
+  { id: 'd3',  name: '番茄鸡蛋盖饭',   image: 'https://picsum.photos/seed/rice1/300/225', price: 18.0 },
+  { id: 'd4',  name: '宫保鸡丁盖饭',   image: 'https://picsum.photos/seed/chicken/300/225', price: 22.0 },
+  { id: 'd5',  name: '炸鸡翅 (6只)',   image: 'https://picsum.photos/seed/wings/300/225', price: 16.0 },
+  { id: 'd6',  name: '薯条大份',       image: 'https://picsum.photos/seed/fries/300/225', price: 12.0 },
+  { id: 'd7',  name: '珍珠奶茶',       image: 'https://picsum.photos/seed/bubbletea/300/225', price: 14.0 },
+  { id: 'd8',  name: '冰拿铁',         image: 'https://picsum.photos/seed/latte/300/225', price: 18.0 },
+  { id: 'd9',  name: '芒果慕斯蛋糕',   image: 'https://picsum.photos/seed/mango/300/225', price: 22.0 },
+  { id: 'd10', name: '提拉米苏',       image: 'https://picsum.photos/seed/tiramisu/300/225', price: 25.0 },
+];
+
+const STORAGE_KEY = 'menu_dishes';
+
+function loadDishes() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) { /* ignore */ }
+  return DEFAULT_DISHES.map(function(d) { return Object.assign({}, d); });
+}
+
+function saveDishes(dishes) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(dishes));
+}
+
+let dishes = loadDishes();
+
+// ═══════════════════ RENDER ═══════════════════
+function renderDishList() {
+  var container = document.getElementById('dishList');
+  var countEl = document.getElementById('dishCount');
+
+  countEl.textContent = dishes.length + ' 款';
+
+  if (dishes.length === 0) {
+    container.innerHTML = '<div class="empty-state"><span class="icon">🍽️</span>还没有菜品，在上方添加吧</div>';
+    return;
+  }
+
+  container.innerHTML = dishes.map(function(d) {
+    return '<div class="dish-item">' +
+      '<img class="thumb" src="' + d.image + '" alt="' + d.name + '" loading="lazy" onerror="this.src=\'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22140%22><rect fill=%22%23f0f0f0%22 width=%22300%22 height=%22140%22/><text x=%22150%22 y=%2275%22 text-anchor=%22middle%22 fill=%22%23ccc%22 font-size=%2214%22>无图片</text></svg>\'">' +
+      '<div class="meta">' +
+        '<div class="dname">' + d.name + '</div>' +
+        '<div class="dprice">' + d.price.toFixed(1) + '</div>' +
+      '</div>' +
+      '<button class="delete-btn" onclick="deleteDish(\'' + d.id + '\')">删除</button>' +
+    '</div>';
+  }).join('');
+}
+
+// ═══════════════════ ACTIONS ═══════════════════
+function previewImage() {
+  var url = document.getElementById('dishImage').value.trim();
+  var preview = document.getElementById('imgPreview');
+  if (url) {
+    preview.src = url;
+    preview.style.display = 'block';
+  } else {
+    preview.style.display = 'none';
+  }
+}
+
+function addDish() {
+  var nameEl = document.getElementById('dishName');
+  var imageEl = document.getElementById('dishImage');
+  var priceEl = document.getElementById('dishPrice');
+
+  var name = nameEl.value.trim();
+  var image = imageEl.value.trim();
+  var price = parseFloat(priceEl.value);
+
+  if (!name) return showToast('请输入菜品名称');
+  if (!image) return showToast('请输入图片链接');
+  if (!price || price <= 0) return showToast('请输入有效价格');
+
+  var id = 'd' + Date.now();
+  dishes.push({ id: id, name: name, image: image, price: price });
+  saveDishes(dishes);
+
+  nameEl.value = '';
+  imageEl.value = '';
+  priceEl.value = '';
+  document.getElementById('imgPreview').style.display = 'none';
+
+  renderDishList();
+  showToast('已添加：' + name);
+}
+
+function deleteDish(id) {
+  dishes = dishes.filter(function(d) { return d.id !== id; });
+  saveDishes(dishes);
+  renderDishList();
+  showToast('已删除');
+}
+
+// ═══════════════════ TOAST ═══════════════════
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timeout);
+  t._timeout = setTimeout(function() { t.classList.remove('show'); }, 1500);
+}
+
+// ═══════════════════ INIT ═══════════════════
+renderDishList();
+</script>
+</body>
+</html>

@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>美味点单</title>
+<style>
+:root {
+  --primary: #FFC300;
+  --primary-dark: #F5B800;
+  --orange: #FF6B35;
+  --bg: #f5f5f5;
+  --card: #fff;
+  --text: #333;
+  --text-light: #999;
+  --border: #eee;
+  --shadow: 0 2px 12px rgba(0,0,0,0.08);
+  --radius: 12px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: #e8e8e8;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.phone {
+  width: 375px;
+  height: 812px;
+  max-height: 100vh;
+  background: var(--bg);
+  border-radius: 20px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+@media (max-width: 400px) {
+  .phone { width: 100%; height: 100vh; border-radius: 0; }
+}
+
+/* ── Header ── */
+.header {
+  background: linear-gradient(135deg, var(--primary), var(--orange));
+  padding: 16px;
+  color: #fff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+}
+.header h1 { font-size: 20px; font-weight: 700; letter-spacing: 1px; }
+.header .store-info { font-size: 12px; opacity: 0.85; margin-top: 2px; }
+.header .manage-link {
+  color: #fff;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+  opacity: 0.8;
+  padding: 6px 10px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.2);
+  transition: background 0.2s;
+}
+.header .manage-link:hover { background: rgba(255,255,255,0.35); }
+
+/* ── Dish Grid ── */
+.dish-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+}
+.dish-area::-webkit-scrollbar { display: none; }
+.dish-area .section-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  padding: 4px 4px 8px;
+}
+.dish-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.dish-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  transition: transform 0.15s;
+}
+.dish-card:active { transform: scale(0.97); }
+.dish-card .img-wrap {
+  width: 100%;
+  padding-top: 75%;
+  position: relative;
+  overflow: hidden;
+  background: #f0f0f0;
+}
+.dish-card .img-wrap img {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+}
+.dish-card .info {
+  padding: 8px 10px 10px;
+}
+.dish-card .name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dish-card .price-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 6px;
+}
+.dish-card .price {
+  color: var(--orange);
+  font-weight: 700;
+  font-size: 15px;
+}
+.dish-card .price::before { content: '\00a5'; font-size: 12px; }
+
+.add-btn {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  border: none;
+  background: var(--primary);
+  color: #fff;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.add-btn:active { transform: scale(0.9); background: var(--primary-dark); }
+
+.qty-ctl {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.qty-ctl .qty { font-size: 14px; font-weight: 700; min-width: 16px; text-align: center; color: var(--text); }
+.qty-ctl .minus-btn {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  border: 2px solid var(--primary);
+  background: #fff;
+  color: var(--primary);
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  line-height: 1;
+}
+.qty-ctl .minus-btn:active { background: #fff5e5; }
+
+/* ── Bottom Cart Bar ── */
+.cart-bar {
+  background: #fff;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+  cursor: pointer;
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.04);
+}
+.cart-icon-wrap {
+  position: relative;
+  width: 44px; height: 44px;
+  background: var(--text);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.2s;
+}
+.cart-icon-wrap.has-items { background: var(--orange); }
+.cart-icon { font-size: 22px; color: #fff; margin-top: -2px; }
+.cart-badge {
+  position: absolute;
+  top: -4px; right: -6px;
+  background: #e74c3c;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  min-width: 18px; height: 18px;
+  border-radius: 9px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+.cart-badge.show { display: flex; }
+.cart-summary { flex: 1; display: flex; flex-direction: column; }
+.cart-summary .total { font-size: 18px; font-weight: 700; color: var(--orange); }
+.cart-summary .hint { font-size: 11px; color: var(--text-light); margin-top: 1px; }
+.checkout-btn {
+  padding: 10px 20px;
+  background: var(--primary);
+  border: none;
+  border-radius: 22px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.2s;
+}
+.checkout-btn:active { background: var(--primary-dark); }
+.checkout-btn:disabled { background: #ddd; cursor: not-allowed; color: #aaa; }
+
+/* ── Cart Modal ── */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: fadeIn 0.2s;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.modal-sheet {
+  width: 375px;
+  max-width: 100%;
+  background: #fff;
+  border-radius: 16px 16px 0 0;
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.25s ease-out;
+}
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.modal-header {
+  padding: 16px;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  font-size: 16px;
+  font-weight: 700;
+}
+.modal-close {
+  position: absolute;
+  right: 16px; top: 50%;
+  transform: translateY(-50%);
+  background: none; border: none;
+  font-size: 20px; color: var(--text-light);
+  cursor: pointer;
+}
+.modal-body { flex: 1; overflow-y: auto; padding: 12px 16px; }
+.modal-body::-webkit-scrollbar { display: none; }
+
+.cart-empty {
+  text-align: center;
+  padding: 30px 0;
+  color: var(--text-light);
+  font-size: 14px;
+}
+.cart-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.cart-item .ci-img {
+  width: 44px; height: 44px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: #f0f0f0;
+}
+.cart-item .ci-info { flex: 1; min-width: 0; }
+.cart-item .ci-name {
+  font-size: 14px; font-weight: 600;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.cart-item .ci-price { font-size: 13px; color: var(--orange); font-weight: 600; }
+.cart-item .ci-qty-ctl {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.cart-item .ci-qty-ctl button {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  border: 1.5px solid var(--primary);
+  background: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+  line-height: 1;
+}
+.cart-item .ci-qty-ctl span { font-weight: 700; min-width: 18px; text-align: center; }
+
+.cart-footer {
+  padding: 12px 16px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 10px;
+}
+.cart-footer button {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  border-radius: 22px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.cart-footer .clear-btn { background: #f5f5f5; color: var(--text-light); }
+.cart-footer .order-btn { background: var(--primary); color: #fff; }
+
+/* ── Order Confirm Modal ── */
+.order-modal {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.2s;
+}
+.order-dialog {
+  width: 320px;
+  max-width: 90%;
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px 20px 20px;
+  text-align: center;
+}
+.order-dialog h3 { font-size: 18px; margin-bottom: 12px; }
+.order-list {
+  text-align: left;
+  max-height: 200px;
+  overflow-y: auto;
+  margin-bottom: 12px;
+}
+.order-list .ol-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  font-size: 13px;
+  border-bottom: 1px solid var(--border);
+}
+.order-total {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--orange);
+  margin-bottom: 16px;
+}
+.order-dialog .btn-row {
+  display: flex;
+  gap: 10px;
+}
+.order-dialog .btn-row button {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 22px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.order-dialog .cancel-btn { background: #f5f5f5; color: var(--text-light); }
+.order-dialog .confirm-btn { background: var(--primary); color: #fff; }
+
+/* ── Toast ── */
+.toast {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.8);
+  background: rgba(0,0,0,0.8);
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 24px;
+  font-size: 14px;
+  font-weight: 600;
+  z-index: 999;
+  pointer-events: none;
+  opacity: 0;
+  transition: all 0.25s;
+  white-space: nowrap;
+}
+.toast.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+</style>
+</head>
+<body>
+
+<div class="phone" id="app">
+  <!-- Header -->
+  <div class="header">
+    <div>
+      <h1>美味点单</h1>
+      <div class="store-info">10:00-22:00 &middot; 30分钟内送达</div>
+    </div>
+    <a class="manage-link" href="manage.html">管理</a>
+  </div>
+
+  <!-- Dish Grid -->
+  <div class="dish-area" id="dishArea"></div>
+
+  <!-- Cart Bar -->
+  <div class="cart-bar" onclick="openCart()">
+    <div class="cart-icon-wrap" id="cartIconWrap">
+      <span class="cart-icon">&#128722;</span>
+      <span class="cart-badge" id="cartBadge">0</span>
+    </div>
+    <div class="cart-summary">
+      <span class="total" id="cartTotal">&yen;0.00</span>
+      <span class="hint">点击查看详情</span>
+    </div>
+    <button class="checkout-btn" id="checkoutBtn" disabled onclick="event.stopPropagation();openCart()">去下单</button>
+  </div>
+</div>
+
+<!-- Cart Modal -->
+<div class="modal-overlay" id="cartModal" style="display:none" onclick="closeCart()">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      购物车
+      <button class="modal-close" onclick="closeCart()">&times;</button>
+    </div>
+    <div class="modal-body" id="cartList"></div>
+    <div class="cart-footer" id="cartFooter" style="display:none">
+      <button class="clear-btn" onclick="clearCart()">清空</button>
+      <button class="order-btn" onclick="submitOrder()">下单</button>
+    </div>
+  </div>
+</div>
+
+<!-- Order Confirm Modal -->
+<div class="order-modal" id="orderModal" style="display:none" onclick="closeOrderModal()">
+  <div class="order-dialog" onclick="event.stopPropagation()">
+    <h3>确认订单</h3>
+    <div class="order-list" id="orderList"></div>
+    <div class="order-total" id="orderTotal"></div>
+    <div class="btn-row">
+      <button class="cancel-btn" onclick="closeOrderModal()">再看看</button>
+      <button class="confirm-btn" onclick="confirmOrder()">确认下单</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════ DATA ═══════════════════
+const DEFAULT_DISHES = [
+  { id: 'd1',  name: '招牌红烧牛肉面', image: 'https://picsum.photos/seed/beef/300/225', price: 28.0 },
+  { id: 'd2',  name: '麻辣小龙虾',     image: 'https://picsum.photos/seed/lobster/300/225', price: 68.0 },
+  { id: 'd3',  name: '番茄鸡蛋盖饭',   image: 'https://picsum.photos/seed/rice1/300/225', price: 18.0 },
+  { id: 'd4',  name: '宫保鸡丁盖饭',   image: 'https://picsum.photos/seed/chicken/300/225', price: 22.0 },
+  { id: 'd5',  name: '炸鸡翅 (6只)',   image: 'https://picsum.photos/seed/wings/300/225', price: 16.0 },
+  { id: 'd6',  name: '薯条大份',       image: 'https://picsum.photos/seed/fries/300/225', price: 12.0 },
+  { id: 'd7',  name: '珍珠奶茶',       image: 'https://picsum.photos/seed/bubbletea/300/225', price: 14.0 },
+  { id: 'd8',  name: '冰拿铁',         image: 'https://picsum.photos/seed/latte/300/225', price: 18.0 },
+  { id: 'd9',  name: '芒果慕斯蛋糕',   image: 'https://picsum.photos/seed/mango/300/225', price: 22.0 },
+  { id: 'd10', name: '提拉米苏',       image: 'https://picsum.photos/seed/tiramisu/300/225', price: 25.0 },
+];
+
+function loadDishes() {
+  try {
+    const raw = localStorage.getItem('menu_dishes');
+    if (raw) return JSON.parse(raw);
+  } catch (e) { /* ignore */ }
+  return DEFAULT_DISHES.map(d => ({...d}));
+}
+
+function saveDishes(dishes) {
+  localStorage.setItem('menu_dishes', JSON.stringify(dishes));
+}
+
+function loadCart() {
+  try {
+    const raw = localStorage.getItem('menu_cart');
+    if (raw) return JSON.parse(raw);
+  } catch (e) { /* ignore */ }
+  return {};
+}
+
+function saveCart(cart) {
+  localStorage.setItem('menu_cart', JSON.stringify(cart));
+}
+
+let dishes = loadDishes();
+const cart = loadCart();
+
+// ═══════════════════ RENDER ═══════════════════
+function renderDishes() {
+  const area = document.getElementById('dishArea');
+  area.innerHTML = `
+    <div class="section-title">全部菜品 (${dishes.length}款)</div>
+    <div class="dish-grid">
+      ${dishes.map(d => {
+        const qty = cart[d.id] || 0;
+        return '<div class="dish-card">' +
+          '<div class="img-wrap">' +
+            '<img src="' + d.image + '" alt="' + d.name + '" loading="lazy" onerror="this.src=\'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22225%22><rect fill=%22%23f0f0f0%22 width=%22300%22 height=%22225%22/><text x=%22150%22 y=%22120%22 text-anchor=%22middle%22 fill=%22%23ccc%22 font-size=%2214%22>无图片</text></svg>\'">' +
+          '</div>' +
+          '<div class="info">' +
+            '<div class="name">' + d.name + '</div>' +
+            '<div class="price-row">' +
+              '<span class="price">' + d.price.toFixed(1) + '</span>' +
+              (qty === 0
+                ? '<button class="add-btn" onclick="event.stopPropagation();addToCart(\'' + d.id + '\')">+</button>'
+                : '<div class="qty-ctl">' +
+                    '<button class="minus-btn" onclick="event.stopPropagation();removeFromCart(\'' + d.id + '\')">−</button>' +
+                    '<span class="qty">' + qty + '</span>' +
+                    '<button class="add-btn" style="width:22px;height:22px;font-size:15px" onclick="event.stopPropagation();addToCart(\'' + d.id + '\')">+</button>' +
+                  '</div>') +
+            '</div>' +
+          '</div>' +
+        '</div>';
+      }).join('')}
+    </div>`;
+}
+
+function renderCartBar() {
+  const items = Object.values(cart);
+  const totalQty = items.reduce(function(s, i) { return s + i.quantity; }, 0);
+  const totalPrice = items.reduce(function(s, i) { return s + i.price * i.quantity; }, 0);
+
+  document.getElementById('cartBadge').textContent = totalQty;
+  document.getElementById('cartBadge').classList.toggle('show', totalQty > 0);
+  document.getElementById('cartIconWrap').classList.toggle('has-items', totalQty > 0);
+  document.getElementById('cartTotal').textContent = '¥' + totalPrice.toFixed(2);
+  document.getElementById('checkoutBtn').disabled = totalQty === 0;
+}
+
+function renderAll() {
+  renderDishes();
+  renderCartBar();
+}
+
+// Reload dishes from localStorage (called after manage page changes)
+function reloadDishes() {
+  dishes = loadDishes();
+  renderAll();
+}
+
+// ═══════════════════ CART ACTIONS ═══════════════════
+function addToCart(id) {
+  if (cart[id]) {
+    cart[id].quantity++;
+  } else {
+    const d = dishes.find(function(d) { return d.id === id; });
+    if (!d) return;
+    cart[id] = { id: d.id, name: d.name, price: d.price, quantity: 1, image: d.image };
+  }
+  saveCart(cart);
+  renderDishes();
+  renderCartBar();
+}
+
+function removeFromCart(id) {
+  if (!cart[id]) return;
+  cart[id].quantity--;
+  if (cart[id].quantity <= 0) delete cart[id];
+  saveCart(cart);
+  renderDishes();
+  renderCartBar();
+}
+
+// ═══════════════════ CART MODAL ═══════════════════
+function openCart() {
+  const items = Object.values(cart);
+  const list = document.getElementById('cartList');
+  const footer = document.getElementById('cartFooter');
+
+  if (items.length === 0) {
+    list.innerHTML = '<div class="cart-empty">购物车空空如也～<br>快去挑选美食吧！</div>';
+    footer.style.display = 'none';
+  } else {
+    list.innerHTML = items.map(function(i) {
+      return '<div class="cart-item">' +
+        '<img class="ci-img" src="' + i.image + '" alt="' + i.name + '" onerror="this.style.display=\'none\'">' +
+        '<div class="ci-info">' +
+          '<div class="ci-name">' + i.name + '</div>' +
+          '<div class="ci-price">¥' + i.price.toFixed(1) + '</div>' +
+        '</div>' +
+        '<div class="ci-qty-ctl">' +
+          '<button onclick="event.stopPropagation();removeFromCart(\'' + i.id + '\');openCart()">−</button>' +
+          '<span>' + i.quantity + '</span>' +
+          '<button onclick="event.stopPropagation();addToCart(\'' + i.id + '\');openCart()">+</button>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+    footer.style.display = 'flex';
+  }
+
+  document.getElementById('cartModal').style.display = 'flex';
+}
+
+function closeCart() {
+  document.getElementById('cartModal').style.display = 'none';
+}
+
+function clearCart() {
+  Object.keys(cart).forEach(function(k) { delete cart[k]; });
+  saveCart(cart);
+  renderDishes();
+  renderCartBar();
+  openCart();
+}
+
+// ═══════════════════ ORDER ═══════════════════
+function submitOrder() {
+  closeCart();
+  const items = Object.values(cart);
+  if (items.length === 0) return;
+
+  document.getElementById('orderList').innerHTML = items.map(function(i) {
+    return '<div class="ol-item"><span>' + i.name + ' ×' + i.quantity + '</span><span>¥' + (i.price * i.quantity).toFixed(2) + '</span></div>';
+  }).join('');
+
+  const total = items.reduce(function(s, i) { return s + i.price * i.quantity; }, 0);
+  document.getElementById('orderTotal').textContent = '合计：¥' + total.toFixed(2);
+  document.getElementById('orderModal').style.display = 'flex';
+}
+
+function closeOrderModal() {
+  document.getElementById('orderModal').style.display = 'none';
+}
+
+function confirmOrder() {
+  closeOrderModal();
+  Object.keys(cart).forEach(function(k) { delete cart[k]; });
+  saveCart(cart);
+  renderAll();
+  showToast('下单成功！商家已接单');
+}
+
+// ═══════════════════ TOAST ═══════════════════
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timeout);
+  t._timeout = setTimeout(function() { t.classList.remove('show'); }, 1500);
+}
+
+// ═══════════════════ CROSS-TAB SYNC ═══════════════════
+// storage event: fires when OTHER tabs/windows modify localStorage
+window.addEventListener('storage', function(e) {
+  if (e.key === 'menu_dishes') reloadDishes();
+});
+// visibilitychange fallback: reload when switching back to this tab
+document.addEventListener('visibilitychange', function() {
+  if (!document.hidden) reloadDishes();
+});
+
+// ═══════════════════ INIT ═══════════════════
+renderAll();
+</script>
+</body>
+</html>
